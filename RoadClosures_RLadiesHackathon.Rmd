@@ -1,0 +1,178 @@
+---
+title: "Road Closures"
+author: "Peter Tarbit (they/them)"
+subtitle: "#qldfloods"
+date: "29/06/2022"
+output: 
+  ioslides_presentation:
+    css: assets/torino_style.css
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(shiny)
+qut_blue = "#00407a"
+qut_dark_blue = "#06ABE8"
+```
+
+<!-- Remove slide numbers -->
+<style type="text/css">
+slides > slide:not(.nobackground):after {
+  content: '';
+}
+</style>
+
+<!-- Code to make images full size -->
+<style>
+.fullslide img {
+  margin-top: -85px;
+  margin-left: -60px;
+  width: 900px; 
+  height: 700px;
+}
+</style>
+
+
+## Team
+
+<center>
+<img src="images/Sarah-Vollert.jpg" width = 30%>
+<img src="images/Cailan.jpg" width = 30%>
+<img src="images/jackson-kwok.jpg" width = 30%>
+</center>
+<p> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Sarah Vollert
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Cailan Jeynes-Smith 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Jackson Kwok</p>
+
+
+
+## {.fullslide}
+
+<center>
+<img src="images/QUT_flooding.jpg">
+</center>
+
+<div style="position: absolute; left: 300px; top:450px;background-color:#00407a72";>
+<p><font color="white">
+<br><strong> Motivation and Gap </strong><br>
+</font></p></div>
+
+
+
+## Current Data
+
+<iframe width='1000px' height='1000px' src='https://qldtraffic.qld.gov.au/listview.html' >
+  <p>Your browser does not support iframes</p>
+</iframe>
+
+## Current Data
+
+<iframe width='1000px' height='1000px' src='https://qldtraffic.qld.gov.au/index.html' >
+  <p>Your browser does not support iframes</p>
+</iframe>
+
+## {.fullslide}
+
+<center>
+<img src="images/flood_map.png">
+</center>
+
+<div style="position: absolute; left: 50px; top:150px;background-color:#00407a72";>
+<p><font color="white">
+<br><strong> Predicted Flood Extent </strong><br>
+</font></p></div>
+
+## Initial Solution
+
+Web Scraping the QLD Traffic list page, then using that data to make a better visualization
+
+<br>
+
+Problems: 
+
+- Difficult due to the nature of the page 
+- Still doesn't solve the problem of incomplete reporting
+
+
+
+## Shiny Solution
+
+Crowd sourced data can fill this data gap
+
+How do we get this data?
+
+How do we display this data?
+
+<br>
+
+We solved these two questions using the R packeges Shiny and Leaflet
+
+<center>
+<img src="images/shinyLogo.png" width = 20%>
+<img src="images/leafletLogo.png" width = 50%>
+</center>
+
+
+## Open Street Maps
+
+OpenStreetMap (OSM) is a collaborative project to create a free editable geographic database of the world.
+
+Data is in a .pbf file ("Protocolbuffer Binary Format")
+
+Contains 5 Layers:
+
+- points => Points of interest, shops, stations, restaurants
+- lines => Ways, paths, streets, roads, train tracks
+- mlines => Routes
+- mpolygons => Regions, Boundaries, Suburbs, Bodies of Water 
+- relations => no-left-turn instructions
+
+
+## Demo Code
+```{r, eval=F, echo=T}
+# get filepath for all osm data for brisbane
+file <- "data/Brisbane.osm.pbf"
+
+# extract polygons
+feature_mpolygons <- oe_read(file, "multipolygons")
+
+suburb <- "South Brisbane"
+
+# get boundary for desired suburb
+suburbBoundary <- filter(feature_mpolygons, name == suburb)
+
+# Extract named roads and paths within suburb
+# add columns for status and # of reports
+subsetRoads <- oe_read(file, "lines", boundary = suburbBoundary) %>%
+    drop_na(name, highway) %>%
+    mutate(open = TRUE) %>%
+    mutate(reports = 0)
+
+```
+
+## App
+
+```{r, echo = FALSE}
+knitr::include_app("https://slowmath.shinyapps.io/roadClosures/",
+                   height = "500px")
+```
+
+
+## {.fullslide}
+
+<center>
+<img src="images/SB_Flooding.jpg">
+</center>
+
+<div style="position: absolute; left: 60px; top:530px;background-color:#00407a72";>
+<p><font color="white">
+<br><strong> Questions </strong><br>
+</font></p></div>
+
+
+<script src = "assets/beamer.js"></script>
